@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 4px;
+}
+
+label,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+input::placeholder,
+button {
+  user-select: none;
+}
+
+button,
+input,
+textarea,
+select {
+  outline: none;
+}
+
+input::placeholder {
+  font-style: italic;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+input,
+textarea,
+select {
+  border: 1px solid #d1d5db;
+  padding: 4.5px;
+  border-radius: 4px;
+}
+
+table {
+  border: 1px solid #7e7e7e;
+}
+
+td,
+tr,
+th {
+  border: 1px solid #7e7e7e;
+}
+
+dialog {
+  z-index: 10;
+}
+
+.sticky {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.sticky > select,
+.sticky > input {
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+.sticky > select ~ button {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+.block {
+  width: 100%;
+}
+
+.btn {
+  border: 1px solid #4a4e5a;
+  border-radius: 4px;
+  transition: 0.2s;
+  font-weight: 600;
+  user-select: none;
+  color: #4a4e5a;
+  padding-bottom: 4px;
+  padding-top: 4px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.btn:hover {
+  background-color: #f7f8f8;
+}
+
+.btn:active {
+  background-color: #edeef1;
+}
+
+.btn.btn-primary {
+  border: 1px solid #0ea6e9;
+  background-color: #0ea6e9;
+  color: #fff;
+}
+
+.btn.btn-primary:hover {
+  border: 1px solid #38bdf8;
+  background-color: #38bdf8;
+}
+
+.btn.btn-primary:active {
+  border: 1px solid #028ac7;
+  background-color: #028ac7;
+}
+
+.btn.btn-danger {
+  border: 1px solid #ff2325;
+  background-color: #ff2325;
+  color: #fff;
+}
+
+.btn.btn-danger:hover {
+  border: 1px solid #ff5758;
+  background-color: #ff5758;
+}
+
+.btn.btn-danger:active {
+  border: 1px solid #d70002;
+  background-color: #d70002;
+}
+
+.btn.btn-warning {
+  border: 1px solid #ff6347;
+  background-color: #ff6347;
+  color: #fff;
+}
+
+.btn.btn-warning:hover {
+  border: 1px solid #ff7c64;
+  background-color: #ff7c64;
+}
+
+.btn.btn-warning:active {
+  border: 1px solid #ed3615;
+  background-color: #ed3615;
+}
+
+.btn.btn-rounded {
+  border-radius: 50%;
+}
