@@ -5,17 +5,18 @@ import db from './Database';
  */
 export default async function initDB() {
   /**
-   * Создание таблицы каталогов
+   * Создание таблицы категорий
    */
-  await db.execute(`create table if not exists Category(
-    "id"	INTEGER NOT NULL UNIQUE,
-    "name"	TEXT,
-    "id_parent"	INTEGER,
-    PRIMARY KEY("id" AUTOINCREMENT)
-  );`);
+  await db.execute(`create table if not exists Category (
+	"id"	INTEGER NOT NULL UNIQUE,
+	"name"	TEXT,
+	"id_parent"	INTEGER,
+	FOREIGN KEY("id_parent") REFERENCES Category(id),
+	PRIMARY KEY("id" AUTOINCREMENT)
+);`);
 
   /**
-   *
+   * Создание таблицы списка книг
    */
   await db.execute(
     `create table if not exists Books (
@@ -36,6 +37,6 @@ export default async function initDB() {
 }
 
 export async function deleteTables() {
-  await db.execute('drop table Category');
   await db.execute('drop table Books');
+  await db.execute('drop table Category');
 }

@@ -1,10 +1,7 @@
 <template>
   <div>
-    <h1>Библиотекарь</h1>
-    <hr class="mb-2" />
-
     <!--Модальное окно для добавление категории -->
-    <modal-window
+    <ModalWindow
       id="add-category"
       name-header="Добавление категории"
       w="400"
@@ -18,13 +15,22 @@
             type="name"
             class="block"
             placeholder="Введите имя категории"
-            v-model="category.name"
+            v-model="newCategory.name"
           />
         </div>
         <div class="mb-2">
           <label for="main-category"> Основная категория </label>
-          <select id="main-category" class="block" v-model="category.main">
+          <select
+            id="main-category"
+            class="block"
+            v-model="newCategory.id_parent"
+          >
             <option disabled>Выберите основную категорию</option>
+            <template v-if="isCategories">
+              <option v-for="category in allCategories" :value="category.id">
+                {{ category.name }}
+              </option>
+            </template>
           </select>
         </div>
       </main>
@@ -37,15 +43,15 @@
           >
             Отменить
           </button>
-          <button type="button" class="btn btn-primary">
+          <button type="button" class="btn btn-primary" @click="onAddCategory">
             Добавить категорию
           </button>
         </footer>
       </menu>
-    </modal-window>
+    </ModalWindow>
 
     <!-- Модальное окно для добавление книги -->
-    <modal-window
+    <ModalWindow
       id="add-book"
       name-header="Добавление книги"
       w="400"
@@ -90,6 +96,11 @@
               v-model="newBook.category"
             >
               <option disabled>Выберите категорию</option>
+              <template v-if="isCategories">
+                <option v-for="category in allCategories" :value="category.id">
+                  {{ category.name }}
+                </option>
+              </template>
             </select>
             <button
               type="button"
@@ -128,6 +139,7 @@
             type="text"
             class="block"
             placeholder="C:\Books\Book.pdf"
+            v-model="newBook.path"
           />
         </div>
         <div class="mb-2">
@@ -152,9 +164,9 @@
           </button>
         </footer>
       </menu>
-    </modal-window>
+    </ModalWindow>
 
-    <div class="space-x-2">
+    <div v-if="isDevelopment" class="space-x-2">
       <button
         type="button"
         class="btn btn-primary"
@@ -165,32 +177,91 @@
       <button type="button" class="btn btn-primary" @click="getAllBooks">
         Получить список всех книг
       </button>
+      <button type="button" class="btn btn-danger" @click="clearAll">
+        Очистить таблицы и переопределить
+      </button>
     </div>
 
     <!-- Таблица книг -->
-    <div class="mt-4">
-      <custom-table
-        :settings="tableSettings"
-        :data="allBooks"
-        @delete-book="onDeleteBook"
-      ></custom-table>
+    <div class="my-4 mx-2 text-right">
+      <input
+        type="search"
+        class="w-96"
+        placeholder="Поиск..."
+        v-model="search"
+      />
+    </div>
+    <div class="mt-4 w-full flex">
+      <div class="w-72 m-2 p-2 border-1 border-black">
+        <TreeMenu
+          label="Все"
+          :nodes="roots"
+          :depth="4"
+          :id="-1"
+          :selected-id="selectedId"
+          @select="select"
+          @remove="onRemoveCategory"
+        />
+        <div class="w-full">
+          <button
+            type="button"
+            class="w-full btn btn-outline"
+            title="Добавить категорию"
+            @click="openModal('add-category')"
+          >
+            <FontAwesomeIcon :icon="faPlus" />
+          </button>
+        </div>
+      </div>
+      <CoverBooks
+        :books="filterAllBooks"
+        @delete="onDeleteBook"
+        @add="openModal('add-book')"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
-import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { ask } from '@tauri-apps/api/dialog';
+import * as $array from 'alga-js/array';
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from 'vue';
+import { useToast } from 'vue-toast-notification';
 import Vue3TagsInput from 'vue3-tags-input';
-import { addBookDB, deleteBookByIdDB, getAllBooksDB } from './middleware/Books';
-import notice from './plugins/notice';
+import {
+  addBookDB,
+  deleteBookByIdDB,
+  getAllBooksDB,
+  updateBookDB,
+} from './middleware/Books';
+import {
+  addCategoryDB,
+  getAllCategoryDB,
+  removeCategoryDB,
+  updateCategoryDB,
+} from './middleware/Category';
+import initDB, { deleteTables } from './middleware/InitDB';
 
 const ModalWindow = defineAsyncComponent(() =>
   import('./components/ModalWindow.vue'),
 );
-
-const CustomTable = defineAsyncComponent(() =>
-  import('./components/CustomTable.vue'),
+const CoverBooks = defineAsyncComponent(() =>
+  import('./components/CoverBooks.vue'),
 );
+const TreeMenu = defineAsyncComponent(() =>
+  import('./components/TreeMenu.vue'),
+);
+
+const $toast = useToast();
 
 let newBook = reactive({
   author: '',
@@ -204,64 +275,66 @@ let newBook = reactive({
   created: new Date().toISOString(),
 });
 
-let category = reactive({
+let newCategory = reactive({
   name: '',
-  main: '',
+  id_parent: null,
 });
 
-const tableSettings = reactive([
-  {
-    id: 1,
-    name: 'Наименование книги',
-    visible: true,
-    sort: 1,
-  },
-  {
-    id: 2,
-    name: 'Автор',
-    visible: true,
-    sort: 2,
-  },
-  {
-    id: 3,
-    name: 'Описание',
-    visible: true,
-    sort: 3,
-  },
-  {
-    id: 4,
-    name: 'Тэги',
-    visible: true,
-    sort: 4,
-  },
-  {
-    id: 5,
-    name: 'Прочитано',
-    visible: true,
-    sort: 5,
-  },
-  {
-    id: 6,
-    name: 'Путь',
-    visible: false,
-    sort: 6,
-  },
-  {
-    id: 7,
-    name: 'Дата добавления',
-    visible: false,
-    sort: 7,
-  },
-  {
-    id: 8,
-    name: 'Обложка',
-    visible: true,
-    sort: 8,
-  },
-]);
-
 let allBooks = ref(null),
-  file = ref('');
+  filterAllBooks = ref(null),
+  allCategories = ref(null),
+  file = ref(''),
+  roots = ref([]),
+  selectedId = ref(0),
+  search = ref('');
+
+watch(search, (value) => {
+  if (value?.length > 0) {
+    filterAllBooks.value = $array.search(allBooks.value, value);
+  } else {
+    filterAllBooks.value = allBooks.value;
+  }
+});
+
+const isDevelopment = computed(() => process.env.NODE_ENV === 'development');
+
+const isCategories = computed(() => allCategories.value?.length > 0);
+
+const sortFilter = async (filters) => {
+  roots.value = [];
+  let node, i;
+
+  let filtersList = await filters.map((filter) => {
+    return {
+      id: filter.id,
+      name: filter.name,
+      data: {
+        id_parent: filter.id_parent,
+      },
+      nodes: [],
+    };
+  });
+
+  for (i = 0; i < filtersList.length; i += 1) {
+    node = filtersList[i];
+    if (node.data.id_parent !== null) {
+      let indexParent;
+      await filtersList.forEach((filter, index) => {
+        if (filter.id == node.data.id_parent) indexParent = index;
+      });
+
+      if (typeof indexParent !== 'undefined') {
+        filtersList[indexParent].nodes.push(node);
+      }
+    } else {
+      roots.value.push(node);
+    }
+  }
+};
+
+const select = async (id) => {
+  selectedId.value = id;
+};
 
 const openModal = (id) => {
   let dialog = document.getElementById(id);
@@ -281,43 +354,153 @@ const handleChangeTag = (tags) => {
   newBook.tags = tags;
 };
 
+const clearNewBook = () => {
+  newBook.author = '';
+  newBook.name = '';
+  newBook.description = '';
+  newBook.cover = null;
+  newBook.isCheck = false;
+  newBook.path = '';
+  newBook.category = null;
+  newBook.tags = [];
+  newBook.created = new Date().toISOString();
+  file.value = '';
+};
+
+const clearNewCategory = () => {
+  newCategory.name = '';
+  newCategory.id_parent = null;
+};
+
 const onAddBook = async () => {
   await addBookDB(newBook)
     .then(async () => {
       await getAllBooks();
-      closeModal({ id: 'add-book' });
-      notice.success('Книга добавлена');
+      await clearNewBook();
+      await closeModal({ id: 'add-book' });
+      $toast.success('Книга добавлена');
     })
     .catch((errors) => {
       console.error(errors);
-      notice.error(errors);
+      $toast.error(errors);
+    });
+};
+
+const onUpdateBook = async (book) => {
+  await updateBookDB(book)
+    .then(() => {
+      $toast.success('Информация о книге была обновлена');
+    })
+    .catch((errors) => {
+      console.error(errors);
+      $toast.error(errors);
     });
 };
 
 const onDeleteBook = async (id) => {
-  await deleteBookByIdDB(id)
-    .then(() => {
-      getAllBooks();
-      notice.success('Книга была удалена');
-    })
-    .catch((errors) => {
-      notice.error(`Произошла ошибка: ${errors}`);
-    });
+  const yes = await ask('Вы уверены, что хотите удалить книгу?', {
+    title: 'Библиотекарь',
+    type: 'info',
+    okLabel: 'Да',
+    cancelLabel: 'Нет',
+  });
+
+  if (yes)
+    await deleteBookByIdDB(id)
+      .then(() => {
+        getAllBooks();
+        $toast.success('Книга была удалена');
+      })
+      .catch((errors) => {
+        $toast.error(`Произошла ошибка: ${errors}`);
+      });
 };
 
-const getAllBooks = async () => {
-  await getAllBooksDB()
+const getAllBooks = async (id) => {
+  await getAllBooksDB(id)
     .then((response) => {
-      console.log(response);
       allBooks.value = response;
+      filterAllBooks.value = response;
     })
     .catch((errors) => {
-      notice.error(errors);
+      $toast.error(errors);
       console.error(errors);
     });
 };
 
+const onAddCategory = async () => {
+  await addCategoryDB(newCategory)
+    .then(async () => {
+      await closeModal({ id: 'add-category' });
+      await getAllCategories();
+      await clearNewCategory();
+      $toast.success('Категория добавлена');
+    })
+    .catch((errors) => {
+      console.error(errors);
+      $toast.error(errors);
+    });
+};
+
+const onUpdateCategory = async () => {
+  await updateCategoryDB()
+    .then(() => $toast.success('Категория была обновлена'))
+    .catch((errors) => {
+      console.error(errors);
+      $toast.error(errors);
+    });
+};
+
+const onRemoveCategory = async (id) => {
+  console.log(id);
+  const yes = await ask('Вы уверены, что хотите удалить категорию?', {
+    title: 'Библиотекарь',
+    type: 'info',
+    okLabel: 'Да',
+    cancelLabel: 'Нет',
+  });
+
+  if (yes)
+    await removeCategoryDB(id)
+      .then(async () => {
+        await getAllCategories();
+        $toast.success('Категория была удалена');
+      })
+      .catch((errors) => {
+        console.error(errors);
+        $toast.error(errors);
+      });
+};
+
+const getAllCategories = async () => {
+  getAllCategoryDB()
+    .then(async (response) => {
+      allCategories.value = response;
+      await sortFilter(response);
+    })
+    .catch((errors) => {
+      console.error(errors);
+      $toast.error(errors);
+    });
+};
+
+const clearAll = async () => {
+  const yes = await ask(
+    'Вы уверены, что хотите все очистить? Процесс необратим',
+    { title: 'library', type: 'warning', okLabel: 'Да', cancelLabel: 'Нет' },
+  );
+
+  if (yes) {
+    await deleteTables();
+    await initDB();
+    await getAllCategories();
+    await getAllBooks();
+    $toast.success('Все данные были очищены!');
+  }
+};
+
 onMounted(async () => {
+  await getAllCategories();
   await getAllBooks();
 });
 </script>

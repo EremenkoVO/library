@@ -1,12 +1,5 @@
+import { toBase64 } from '../plugins/base64';
 import db from './Database';
-
-const toBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-  });
 
 /**
  * Получение всех книг из базы
@@ -17,7 +10,6 @@ export async function getAllBooksDB() {
 
 /**
  * Добавление книги
- * @returns
  */
 export async function addBookDB({
   author,
@@ -46,7 +38,7 @@ export async function addBookDB({
       author,
       name,
       description,
-      await toBase64(cover),
+      cover ? await toBase64(cover) : '',
       isCheck ? 1 : 0,
       path,
       category,
@@ -56,6 +48,29 @@ export async function addBookDB({
   );
 }
 
+/**
+ * Обновление информации о книге
+ */
+export async function updateBookDB({
+  id,
+  author,
+  name,
+  description,
+  cover,
+  isCheck,
+  path,
+  category,
+  tags,
+}) {
+  return await db.execute(
+    `update Books set author=$1, name=$2, description=$3, cover=$4, isCheck=$5, path=$6, category=$7, tags=$8 where id=$9`,
+    [author, name, description, cover, isCheck, path, category, tags, id],
+  );
+}
+
+/**
+ * Удаление книги
+ */
 export async function deleteBookByIdDB(id) {
   return await db.execute('delete from Books where id=$1', [id]);
 }
