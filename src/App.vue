@@ -201,6 +201,7 @@
           :selected-id="selectedId"
           @select="select"
           @remove="onRemoveCategory"
+          @update="openModal('add-category')"
         />
         <div class="w-full">
           <button
@@ -284,7 +285,6 @@ let allBooks = ref(null),
   filterAllBooks = ref(null),
   allCategories = ref(null),
   file = ref(''),
-  roots = ref([]),
   selectedId = ref(0),
   search = ref('');
 
@@ -300,8 +300,10 @@ const isDevelopment = computed(() => process.env.NODE_ENV === 'development');
 
 const isCategories = computed(() => allCategories.value?.length > 0);
 
+const roots = computed(() => allCategories.value);
+
 const sortFilter = async (filters) => {
-  roots.value = [];
+  allCategories.value = [];
   let node, i;
 
   let filtersList = await filters.map((filter) => {
@@ -327,7 +329,7 @@ const sortFilter = async (filters) => {
         filtersList[indexParent].nodes.push(node);
       }
     } else {
-      roots.value.push(node);
+      allCategories.value.push(node);
     }
   }
 };
@@ -473,10 +475,9 @@ const onRemoveCategory = async (id) => {
 };
 
 const getAllCategories = async () => {
-  getAllCategoryDB()
+  await getAllCategoryDB()
     .then(async (response) => {
-      allCategories.value = response;
-      await sortFilter(response);
+      sortFilter(value);
     })
     .catch((errors) => {
       console.error(errors);
