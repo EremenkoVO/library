@@ -274,6 +274,7 @@
       </div>
       <div>
         <CoverBooks
+          :key="keyBooks"
           :books="filterAllBooks"
           @delete="onDeleteBook"
           @update="updateBookModal"
@@ -304,6 +305,7 @@ import {
   deleteBookByIdDB,
   getAllBooksDB,
   updateBookDB,
+  getBookInCategoryDB,
 } from './middleware/Books';
 import {
   addCategoryDB,
@@ -331,9 +333,10 @@ let allBooks = ref(null),
   allCategories = ref(null),
   roots = ref([]),
   file = ref(''),
-  selectedId = ref(0),
+  selectedId = ref(null),
   search = ref(''),
-  keyTreeMenu = ref(1);
+  keyTreeMenu = ref(1),
+  keyBooks = ref(1);
 
 watch(search, (value) => {
   if (value?.length > 0) {
@@ -341,6 +344,17 @@ watch(search, (value) => {
   } else {
     filterAllBooks.value = allBooks.value;
   }
+});
+
+watch(selectedId, (value) => {
+  keyBooks.value = keyBooks.value + 1;
+  if (value == -1) {
+    getAllBooks();
+    return;
+  }
+
+  modalBook.create.value.category = value;
+  getBookInCategory(value);
 });
 
 const isDevelopment = computed(() => process.env.NODE_ENV === 'development');
@@ -607,6 +621,17 @@ const onRemoveCategory = async (id) => {
         console.error(errors);
         $toast.error(errors);
       });
+};
+
+const getBookInCategory = async (id_category) => {
+  await getBookInCategoryDB(id_category)
+    .then((response) => {
+      allBooks.value = response;
+      filterAllBooks.value = response;
+    })
+    .catch((error) => {
+      $toast.error('Ошибка получения списка книг');
+    });
 };
 
 const getAllBooks = async (id) => {

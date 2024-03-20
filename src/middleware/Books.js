@@ -8,6 +8,15 @@ export async function getAllBooksDB() {
 }
 
 /**
+ * Получить список книг по категории
+ * @param {number} id_category
+ * @returns
+ */
+export async function getBookInCategoryDB(id_category) {
+  return db.select('select * from books where id_category==$1', [id_category]);
+}
+
+/**
  * Добавление книги
  */
 export async function addBookDB({
