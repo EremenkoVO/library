@@ -23,7 +23,7 @@ export async function addCategoryDB({ name, id_parent }) {
 export async function updateCategoryDB({ id, name, id_parent }) {
   return await db.execute(
     `update Category set name=$1, id_parent=$2 where id=$3`,
-    [id, name, id_parent],
+    [name, id_parent, id],
   );
 }
 

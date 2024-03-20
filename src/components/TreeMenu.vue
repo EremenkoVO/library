@@ -11,7 +11,7 @@
       >
         <span>{{ label }}</span>
         <div v-if="id !== -1" class="space-x-2">
-          <button type="button" @click="update(id)">
+          <button type="button" @click="update({ id, id_parent, label })">
             <FontAwesomeIcon :icon="faPen" />
           </button>
           <button type="button" @click="remove(id)">
@@ -30,7 +30,7 @@
       :id_parent="node.id_parent"
       @select="select"
       @remove="remove"
-      @update="update(id)"
+      @update="update"
     >
     </tree-menu>
   </div>
@@ -59,5 +59,10 @@ const select = (id) => emits('select', id);
 
 const remove = (id) => emits('remove', id);
 
-const update = (id) => emits('update', id);
+const update = (data) =>
+  emits('update', {
+    id: data.id,
+    id_parent: data.id_parent,
+    label: data.label,
+  });
 </script>

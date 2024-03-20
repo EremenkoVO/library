@@ -1,11 +1,12 @@
 <template>
   <div>
-    <!--Модальное окно для добавление категории -->
+    <!--Модальное окно для добавление/изменения категории -->
     <ModalWindow
-      id="add-category"
-      name-header="Добавление категории"
-      w="400"
-      @close="closeModal({ id: 'add-category' })"
+      v-for="modal in modalCategory"
+      v-model="modal.view.isShow"
+      :key="modal.view.id"
+      :id="modal.view.id"
+      :title="modal.view.title"
     >
       <main class="block">
         <div class="mb-2">
@@ -15,7 +16,7 @@
             type="name"
             class="block"
             placeholder="Введите имя категории"
-            v-model="newCategory.name"
+            v-model="modal.value.name"
           />
         </div>
         <div class="mb-2">
@@ -23,11 +24,27 @@
           <select
             id="main-category"
             class="block"
-            v-model="newCategory.id_parent"
+            v-model="modal.value.id_parent"
           >
-            <option disabled>Выберите основную категорию</option>
-            <template v-if="isCategories">
-              <option v-for="category in allCategories" :value="category.id">
+            <option :value="null">Все</option>
+            <template v-if="isCategories && modal.view.id === 'add-category'">
+              <option
+                v-for="category in allCategories"
+                :key="category.id"
+                :value="category.id"
+              >
+                {{ category.name }}
+              </option>
+            </template>
+            <template
+              v-if="isCategories && modal.view.id === 'edit-category'"
+              v-for="category in allCategories"
+              :key="category.id"
+            >
+              <option
+                v-if="modal.value.id !== category.id"
+                :value="category.id"
+              >
                 {{ category.name }}
               </option>
             </template>
@@ -39,12 +56,16 @@
           <button
             type="button"
             class="btn btn-default mr-1"
-            @click="closeModal({ id: 'add-category' })"
+            @click="modal.view.isShow = false"
           >
             Отменить
           </button>
-          <button type="button" class="btn btn-primary" @click="onAddCategory">
-            Добавить категорию
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="modal.view.func"
+          >
+            {{ modal.view.title_btn_primary }}
           </button>
         </footer>
       </menu>
@@ -195,20 +216,21 @@
       <div class="w-72 m-2 p-2 border-1 border-black">
         <TreeMenu
           label="Все"
-          :nodes="roots"
+          :key="keyTreeMenu"
+          :nodes="$roots"
           :depth="4"
           :id="-1"
           :selected-id="selectedId"
           @select="select"
           @remove="onRemoveCategory"
-          @update="openModal('add-category')"
+          @update="update"
         />
         <div class="w-full">
           <button
             type="button"
             class="w-full btn btn-outline"
             title="Добавить категорию"
-            @click="openModal('add-category')"
+            @click="modalCategory.create.view.isShow = true"
           >
             <FontAwesomeIcon :icon="faPlus" />
           </button>
@@ -276,17 +298,14 @@ let newBook = reactive({
   created: new Date().toISOString(),
 });
 
-let newCategory = reactive({
-  name: '',
-  id_parent: null,
-});
-
 let allBooks = ref(null),
   filterAllBooks = ref(null),
   allCategories = ref(null),
+  roots = ref([]),
   file = ref(''),
   selectedId = ref(0),
-  search = ref('');
+  search = ref(''),
+  keyTreeMenu = ref(1);
 
 watch(search, (value) => {
   if (value?.length > 0) {
@@ -300,52 +319,115 @@ const isDevelopment = computed(() => process.env.NODE_ENV === 'development');
 
 const isCategories = computed(() => allCategories.value?.length > 0);
 
-const roots = computed(() => allCategories.value);
+const $roots = computed(() => roots.value);
+
+let modalCategory = reactive({
+  create: {
+    view: {
+      id: 'add-category',
+      title: 'Добавить категорию',
+      title_btn_primary: 'Добавить',
+      isShow: false,
+      func: async () => {
+        await addCategoryDB(modalCategory.create.value)
+          .then(async () => {
+            modalCategory.create.view.isShow = false;
+            $toast.success('Категория добавлена');
+          })
+          .then(async () => {
+            await getAllCategories();
+          })
+          .then(() => {
+            modalCategory.create.value.name = '';
+            modalCategory.create.value.id_parent = null;
+            keyTreeMenu.value = keyTreeMenu.value + 1;
+          })
+          .catch((errors) => {
+            console.error(errors);
+            $toast.error(errors);
+          });
+      },
+    },
+    value: {
+      id: null,
+      name: '',
+      id_parent: null,
+    },
+  },
+  edit: {
+    view: {
+      id: 'edit-category',
+      title: 'Изменить категорию',
+      title_btn_primary: 'Изменить',
+      isShow: false,
+      func: async () => {
+        await updateCategoryDB(modalCategory.edit.value)
+          .then(() => {
+            modalCategory.edit.view.isShow = false;
+            $toast.success('Категория была обновлена');
+          })
+          .then(async () => {
+            await getAllCategories();
+          })
+          .then(() => {
+            modalCategory.edit.value.name = '';
+            modalCategory.edit.value.id_parent = null;
+            keyTreeMenu.value = keyTreeMenu.value + 1;
+          })
+          .catch((errors) => {
+            console.error(errors);
+            $toast.error(errors);
+          });
+      },
+    },
+    value: {
+      id: null,
+      name: '',
+      id_parent: null,
+    },
+  },
+});
 
 const sortFilter = async (filters) => {
-  allCategories.value = [];
+  roots.value = [];
   let node, i;
 
   let filtersList = await filters.map((filter) => {
     return {
       id: filter.id,
       name: filter.name,
-      data: {
-        id_parent: filter.id_parent,
-      },
+      id_parent: filter.id_parent,
       nodes: [],
     };
   });
 
   for (i = 0; i < filtersList.length; i += 1) {
     node = filtersList[i];
-    if (node.data.id_parent !== null) {
+    if (node.id_parent !== null) {
       let indexParent;
       await filtersList.forEach((filter, index) => {
-        if (filter.id == node.data.id_parent) indexParent = index;
+        if (filter.id == node.id_parent) indexParent = index;
       });
 
       if (typeof indexParent !== 'undefined') {
         filtersList[indexParent].nodes.push(node);
       }
     } else {
-      allCategories.value.push(node);
+      await roots.value.push(node);
     }
   }
 };
 
+const update = async (data) => {
+  console.log(data);
+  modalCategory.edit.view.isShow = true;
+  modalCategory.edit.value.id = data.id;
+  modalCategory.edit.value.id_parent = data.id_parent;
+  modalCategory.edit.value.name = data.label;
+};
+
 const select = async (id) => {
   selectedId.value = id;
-};
-
-const openModal = (id) => {
-  let dialog = document.getElementById(id);
-  dialog.showModal();
-};
-
-const closeModal = (data) => {
-  let dialog = document.getElementById(data?.id);
-  dialog?.close();
 };
 
 const handleFileUpload = () => {
@@ -367,11 +449,6 @@ const clearNewBook = () => {
   newBook.tags = [];
   newBook.created = new Date().toISOString();
   file.value = '';
-};
-
-const clearNewCategory = () => {
-  newCategory.name = '';
-  newCategory.id_parent = null;
 };
 
 const onAddBook = async () => {
@@ -430,29 +507,6 @@ const getAllBooks = async (id) => {
     });
 };
 
-const onAddCategory = async () => {
-  await addCategoryDB(newCategory)
-    .then(async () => {
-      await closeModal({ id: 'add-category' });
-      await getAllCategories();
-      await clearNewCategory();
-      $toast.success('Категория добавлена');
-    })
-    .catch((errors) => {
-      console.error(errors);
-      $toast.error(errors);
-    });
-};
-
-const onUpdateCategory = async () => {
-  await updateCategoryDB()
-    .then(() => $toast.success('Категория была обновлена'))
-    .catch((errors) => {
-      console.error(errors);
-      $toast.error(errors);
-    });
-};
-
 const onRemoveCategory = async (id) => {
   console.log(id);
   const yes = await ask('Вы уверены, что хотите удалить категорию?', {
@@ -477,7 +531,8 @@ const onRemoveCategory = async (id) => {
 const getAllCategories = async () => {
   await getAllCategoryDB()
     .then(async (response) => {
-      sortFilter(value);
+      allCategories.value = response;
+      sortFilter(response);
     })
     .catch((errors) => {
       console.error(errors);
