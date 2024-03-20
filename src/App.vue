@@ -71,104 +71,136 @@
       </menu>
     </ModalWindow>
 
-    <!-- Модальное окно для добавление книги -->
+    <!-- Модальное окно для добавление/изменения книги -->
     <ModalWindow
-      id="add-book"
-      name-header="Добавление книги"
-      w="400"
-      @close="closeModal({ id: 'add-book' })"
+      v-for="modal in modalBook"
+      size="lg"
+      v-model="modal.view.isShow"
+      :key="modal.view.id"
+      :id="modal.view.id"
+      :title="modal.view.title"
     >
-      <main class="block">
-        <div class="mb-2">
-          <label for="name-book">Автор(ы) книги</label>
-          <input
-            id="name-book"
-            type="text"
-            class="input-text block"
-            placeholder="Лев Толстой"
-            v-model="newBook.author"
-          />
-        </div>
-        <div class="mb-2">
-          <label for="name-book">Наименование книги</label>
-          <input
-            id="name-book"
-            type="text"
-            class="input-text block"
-            placeholder="Война и мир"
-            v-model="newBook.name"
-          />
-        </div>
-        <div class="mb-2">
-          <label for="description-book">Описание книги</label>
-          <textarea
-            id="description-book"
-            type="text"
-            class="block"
-            v-model="newBook.description"
-          ></textarea>
-        </div>
-        <div class="mb-2">
-          <label for="description-book">Категория</label>
-          <div class="sticky">
-            <select
-              id="category-book"
-              class="sticky-button w-full"
-              v-model="newBook.category"
-            >
-              <option disabled>Выберите категорию</option>
-              <template v-if="isCategories">
-                <option v-for="category in allCategories" :value="category.id">
-                  {{ category.name }}
-                </option>
-              </template>
-            </select>
-            <button
-              type="button"
-              class="btn btn-primary"
-              title="Добавить новую категорию"
-              @click="openModal('add-category')"
-            >
-              +
-            </button>
+      <main class="flex space-x-2">
+        <div>
+          <span>Обложка книги</span>
+          <div
+            class="h-full w-full border rounded-md cursor-pointer text-center flex flex-col justify-center hover:bg-slate-100"
+            title="Изменить обложку"
+            :style="`background-image: url(${modal.value.cover}); width: 350px; height: 550px; background-size: contain;`"
+            @click="$refs.file[0].click()"
+          >
+            <input
+              id="cover-book"
+              type="file"
+              ref="file"
+              class="hidden"
+              multiple="false"
+              accept="image/png, image/gif, image/jpeg"
+              @change="
+                async (event) => {
+                  modal.value.cover = await toBase64(event.target.files[0]);
+                  event.target.files = null;
+                }
+              "
+            />
+            <FontAwesomeIcon v-if="!modal.value.cover" :icon="faImage" />
           </div>
         </div>
-        <div class="mb-2">
-          <label for="cover-book">Обложка книги</label>
-          <input
-            id="cover-book"
-            type="file"
-            ref="file"
-            class="block"
-            accept="image/jpeg, image/png"
-            @change="handleFileUpload()"
-          />
-        </div>
-        <div class="mb-2">
-          <input
-            id="check-book"
-            type="checkbox"
-            class="mr-1"
-            v-model="newBook.isCheck"
-          />
-          <label for="check-book">Прочитано</label>
-        </div>
-        <div class="mb-2">
-          <label fro="path-book">Путь к книге</label>
-          <input
-            id="path-book"
-            type="text"
-            class="block"
-            placeholder="C:\Books\Book.pdf"
-            v-model="newBook.path"
-          />
-        </div>
-        <div class="mb-2">
-          <label>Теги</label>
-          <vue3-tags-input
-            :tags="newBook.tags"
-            @on-tags-changed="handleChangeTag"
-          ></vue3-tags-input>
+        <div class="block">
+          <div class="mb-2">
+            <label for="name-book">Автор(ы) книги</label>
+            <input
+              id="name-book"
+              type="text"
+              class="input-text block"
+              placeholder="Лев Толстой"
+              v-model="modal.value.author"
+            />
+          </div>
+          <div class="mb-2">
+            <label for="name-book">Наименование книги</label>
+            <input
+              id="name-book"
+              type="text"
+              class="input-text block"
+              placeholder="Война и мир"
+              v-model="modal.value.name"
+            />
+          </div>
+          <div class="mb-2">
+            <label for="name-book">Год издания</label>
+            <input
+              id="name-book"
+              type="number"
+              class="input-text block"
+              placeholder="2000"
+              min="0"
+              v-model="modal.value.year"
+            />
+          </div>
+          <div class="mb-2">
+            <label for="description-book">Описание книги</label>
+            <textarea
+              id="description-book"
+              type="text"
+              class="block"
+              v-model="modal.value.description"
+            ></textarea>
+          </div>
+          <div class="mb-2">
+            <label for="description-book">Категория</label>
+            <div class="sticky">
+              <select
+                id="category-book"
+                class="sticky-button w-full"
+                v-model="modal.value.category"
+              >
+                <option :value="null">Все</option>
+                <template v-if="isCategories">
+                  <option
+                    v-for="category in allCategories"
+                    :value="category.id"
+                  >
+                    {{ category.name }}
+                  </option>
+                </template>
+              </select>
+              <button
+                type="button"
+                class="btn btn-primary"
+                title="Добавить новую категорию"
+                @click="modalCategory.create.view.isShow = true"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div class="mb-2">
+            <input
+              id="check-book"
+              type="checkbox"
+              class="mr-1"
+              v-model="modal.value.isCheck"
+            />
+            <label for="check-book">Прочитано</label>
+          </div>
+          <div class="mb-2">
+            <label fro="path-book">Путь к книге</label>
+            <input
+              id="path-book"
+              type="text"
+              class="block"
+              placeholder="C:\Books\Book.pdf"
+              v-model="modal.value.path"
+            />
+          </div>
+          <div class="mb-2">
+            <label>Теги</label>
+            <vue3-tags-input
+              :tags="modal.value.tags"
+              @on-tags-changed="(data) => (modal.value.tags = data)"
+            ></vue3-tags-input>
+          </div>
         </div>
       </main>
       <menu class="w-full text-right">
@@ -176,12 +208,16 @@
           <button
             type="button"
             class="btn mr-1"
-            @click="closeModal({ id: 'add-book' })"
+            @click="modal.view.isShow = false"
           >
             Отменить
           </button>
-          <button type="button" class="btn btn-primary" @click="onAddBook">
-            Добавить книгу
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="modal.view.func"
+          >
+            {{ modal.view.title_btn_primary }}
           </button>
         </footer>
       </menu>
@@ -223,7 +259,7 @@
           :selected-id="selectedId"
           @select="select"
           @remove="onRemoveCategory"
-          @update="update"
+          @update="updateCategoryModal"
         />
         <div class="w-full">
           <button
@@ -236,17 +272,20 @@
           </button>
         </div>
       </div>
-      <CoverBooks
-        :books="filterAllBooks"
-        @delete="onDeleteBook"
-        @add="openModal('add-book')"
-      />
+      <div>
+        <CoverBooks
+          :books="filterAllBooks"
+          @delete="onDeleteBook"
+          @update="updateBookModal"
+          @add="modalBook.create.view.isShow = true"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faImage } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { ask } from '@tauri-apps/api/dialog';
 import * as $array from 'alga-js/array';
@@ -273,6 +312,7 @@ import {
   updateCategoryDB,
 } from './middleware/Category';
 import initDB, { deleteTables } from './middleware/InitDB';
+import { toBase64 } from './plugins/base64';
 
 const ModalWindow = defineAsyncComponent(() =>
   import('./components/ModalWindow.vue'),
@@ -285,18 +325,6 @@ const TreeMenu = defineAsyncComponent(() =>
 );
 
 const $toast = useToast();
-
-let newBook = reactive({
-  author: '',
-  name: '',
-  description: '',
-  cover: null,
-  isCheck: false,
-  path: '',
-  category: null,
-  tags: [],
-  created: new Date().toISOString(),
-});
 
 let allBooks = ref(null),
   filterAllBooks = ref(null),
@@ -321,7 +349,7 @@ const isCategories = computed(() => allCategories.value?.length > 0);
 
 const $roots = computed(() => roots.value);
 
-let modalCategory = reactive({
+const modalCategory = reactive({
   create: {
     view: {
       id: 'add-category',
@@ -388,6 +416,103 @@ let modalCategory = reactive({
   },
 });
 
+const modalBook = reactive({
+  create: {
+    view: {
+      id: 'add-book',
+      title: 'Добавить книгу',
+      title_btn_primary: 'Добавить',
+      isShow: false,
+      func: async () => {
+        await addBookDB(modalBook.create.value)
+          .then(async () => {
+            modalBook.create.view.isShow = false;
+            $toast.success('Книга добавлена');
+          })
+          .then(() => {
+            modalBook.create.value.author = '';
+            modalBook.create.value.name = '';
+            modalBook.create.value.description = '';
+            modalBook.create.value.year = '';
+            modalBook.create.value.cover = null;
+            modalBook.create.value.isCheck = false;
+            modalBook.create.value.path = '';
+            modalBook.create.value.category = null;
+            modalBook.create.value.tags = [];
+            modalBook.create.value.created = new Date().toISOString();
+            file.value = '';
+          })
+          .then(async () => {
+            await getAllBooks();
+          })
+          .catch((errors) => {
+            console.error(errors);
+            $toast.error(errors);
+          });
+      },
+    },
+    value: {
+      id: null,
+      author: '',
+      name: '',
+      description: '',
+      cover: null,
+      isCheck: false,
+      path: '',
+      category: null,
+      tags: [],
+      created: new Date().toISOString(),
+    },
+  },
+  edit: {
+    view: {
+      id: 'edit-book',
+      title: 'Изменить книгу',
+      title_btn_primary: 'Изменить',
+      isShow: false,
+      func: async () => {
+        await updateBookDB(modalBook.edit.value)
+          .then(() => {
+            modalBook.edit.view.isShow = false;
+            $toast.success('Информация о книге была обновлена');
+          })
+          .then(() => {
+            modalBook.edit.value.author = '';
+            modalBook.edit.value.name = '';
+            modalBook.edit.value.description = '';
+            modalBook.edit.value.year = '';
+            modalBook.edit.value.cover = null;
+            modalBook.edit.value.isCheck = false;
+            modalBook.edit.value.path = '';
+            modalBook.edit.value.category = null;
+            modalBook.edit.value.tags = [];
+            modalBook.edit.value.created = new Date().toISOString();
+            file.value = '';
+          })
+          .then(async () => {
+            await getAllBooks();
+          })
+          .catch((errors) => {
+            console.error(errors);
+            $toast.error(errors);
+          });
+      },
+    },
+    value: {
+      id: null,
+      author: '',
+      name: '',
+      description: '',
+      cover: null,
+      isCheck: false,
+      path: '',
+      category: null,
+      tags: [],
+      created: new Date().toISOString(),
+    },
+  },
+});
+
 const sortFilter = async (filters) => {
   roots.value = [];
   let node, i;
@@ -418,62 +543,30 @@ const sortFilter = async (filters) => {
   }
 };
 
-const update = async (data) => {
-  console.log(data);
+const updateCategoryModal = async (data) => {
   modalCategory.edit.view.isShow = true;
   modalCategory.edit.value.id = data.id;
   modalCategory.edit.value.id_parent = data.id_parent;
   modalCategory.edit.value.name = data.label;
 };
 
+const updateBookModal = async (data) => {
+  modalBook.edit.view.isShow = true;
+  modalBook.edit.value.id = data.id;
+  modalBook.edit.value.author = data.author;
+  modalBook.edit.value.name = data.name;
+  modalBook.edit.value.description = data.description;
+  modalBook.edit.value.year = data.year;
+  modalBook.edit.value.cover = data.cover;
+  modalBook.edit.value.isCheck = data.isCheck;
+  modalBook.edit.value.path = data.path;
+  modalBook.edit.value.category = data.id_category;
+  modalBook.edit.value.tags = JSON.parse(data.tags);
+  modalBook.edit.value.created = data.created;
+};
+
 const select = async (id) => {
   selectedId.value = id;
-};
-
-const handleFileUpload = () => {
-  newBook.cover = file.value.files[0];
-};
-
-const handleChangeTag = (tags) => {
-  newBook.tags = tags;
-};
-
-const clearNewBook = () => {
-  newBook.author = '';
-  newBook.name = '';
-  newBook.description = '';
-  newBook.cover = null;
-  newBook.isCheck = false;
-  newBook.path = '';
-  newBook.category = null;
-  newBook.tags = [];
-  newBook.created = new Date().toISOString();
-  file.value = '';
-};
-
-const onAddBook = async () => {
-  await addBookDB(newBook)
-    .then(async () => {
-      await getAllBooks();
-      await clearNewBook();
-      await closeModal({ id: 'add-book' });
-      $toast.success('Книга добавлена');
-    })
-    .catch((errors) => {
-      console.error(errors);
-      $toast.error(errors);
-    });
-};
-
-const onUpdateBook = async (book) => {
-  await updateBookDB(book)
-    .then(() => {
-      $toast.success('Информация о книге была обновлена');
-    })
-    .catch((errors) => {
-      console.error(errors);
-      $toast.error(errors);
-    });
 };
 
 const onDeleteBook = async (id) => {
@@ -495,18 +588,6 @@ const onDeleteBook = async (id) => {
       });
 };
 
-const getAllBooks = async (id) => {
-  await getAllBooksDB(id)
-    .then((response) => {
-      allBooks.value = response;
-      filterAllBooks.value = response;
-    })
-    .catch((errors) => {
-      $toast.error(errors);
-      console.error(errors);
-    });
-};
-
 const onRemoveCategory = async (id) => {
   console.log(id);
   const yes = await ask('Вы уверены, что хотите удалить категорию?', {
@@ -526,6 +607,18 @@ const onRemoveCategory = async (id) => {
         console.error(errors);
         $toast.error(errors);
       });
+};
+
+const getAllBooks = async (id) => {
+  await getAllBooksDB(id)
+    .then((response) => {
+      allBooks.value = response;
+      filterAllBooks.value = response;
+    })
+    .catch((errors) => {
+      $toast.error(errors);
+      console.error(errors);
+    });
 };
 
 const getAllCategories = async () => {

@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div v-if="isBooks" class="w-full flex">
+    <div v-if="isBooks" class="w-full flex-wrap flex">
       <div v-for="book in books" :key="book.id" class="m-2 p-2">
         <div
           :style="`background-image: url(${book.cover}); width: 200px; height: 300px; background-size: contain;`"
           class="rounded-md cursor-pointer"
         >
           <div class="px-2 py-1 space-x-2 text-right">
-            <button type="button" @click="updateBook(book.id)" title="Изменить">
+            <button type="button" @click="updateBook(book)" title="Изменить">
               <FontAwesomeIcon :icon="faPen" />
             </button>
             <button type="button" @click="deleteBook(book.id)" title="Удалить">
@@ -68,6 +68,6 @@ const isHover = ref(false);
 const isBooks = computed(() => props.books?.length > 0);
 
 const deleteBook = (id) => emits('delete', id);
-const updateBook = (id) => emits('update', id);
+const updateBook = (book) => emits('update', book);
 const add = () => emits('add');
 </script>

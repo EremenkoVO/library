@@ -1,4 +1,3 @@
-import { toBase64 } from '../plugins/base64';
 import db from './Database';
 
 /**
@@ -15,6 +14,7 @@ export async function addBookDB({
   author,
   name,
   description,
+  year,
   cover,
   isCheck,
   path,
@@ -27,18 +27,20 @@ export async function addBookDB({
         author,
         name,
         description,
+        year,
         cover,
         isCheck,
         path,
         id_category,
         tags,
         created
-  ) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       author,
       name,
       description,
-      cover ? await toBase64(cover) : '',
+      year,
+      cover,
       isCheck ? 1 : 0,
       path,
       category,
@@ -56,6 +58,7 @@ export async function updateBookDB({
   author,
   name,
   description,
+  year,
   cover,
   isCheck,
   path,
@@ -63,8 +66,8 @@ export async function updateBookDB({
   tags,
 }) {
   return await db.execute(
-    `update Books set author=$1, name=$2, description=$3, cover=$4, isCheck=$5, path=$6, category=$7, tags=$8 where id=$9`,
-    [author, name, description, cover, isCheck, path, category, tags, id],
+    `update Books set author=$1, name=$2, description=$3, year=$4, cover=$5, isCheck=$6, path=$7, id_category=$8, tags=$9 where id=$10`,
+    [author, name, description, year, cover, isCheck, path, category, tags, id],
   );
 }
 

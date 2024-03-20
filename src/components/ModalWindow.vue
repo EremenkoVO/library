@@ -54,7 +54,7 @@ const setSize = computed(() => {
     case 'sm':
       return 'max-width: 500px';
     case 'lg':
-      return 'max-width: 1200px';
+      return 'max-width: 800px';
   }
   return '';
 });
@@ -70,7 +70,7 @@ const close = () => emit('update:modelValue', false);
   bottom: 0;
   left: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 10500;
+  z-index: 2;
   margin: 0;
   padding: 0;
   overflow-y: auto;
@@ -87,6 +87,7 @@ const close = () => emit('update:modelValue', false);
   width: auto;
   margin: 20px;
 }
+
 @media (min-width: 576px) {
   .modal-view__dialog {
     margin: 100px auto; /* для отображения модального окна по центру */

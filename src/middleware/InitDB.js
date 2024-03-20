@@ -24,6 +24,7 @@ export default async function initDB() {
     "author"	TEXT,
     "name"	TEXT,
     "description"	TEXT,
+    "year" TEXT,
     "cover"	TEXT,
     "isCheck"	INTEGER,
     "path"	TEXT,
