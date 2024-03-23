@@ -1,6 +1,12 @@
 <template>
   <transition name="fade">
-    <div class="modal-view" :id="id" v-if="modelValue" @click.stop="close">
+    <div
+      class="modal-view"
+      :id="id"
+      v-if="modelValue"
+      @click.stop="close"
+      :style="`z-index: ${zIndex}`"
+    >
       <div class="modal-view__dialog" :style="setSize" @click.stop>
         <div class="modal-view__content">
           <div class="modal-view__header">
@@ -70,7 +76,6 @@ const close = () => emit('update:modelValue', false);
   bottom: 0;
   left: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 2;
   margin: 0;
   padding: 0;
   overflow-y: auto;

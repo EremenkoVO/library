@@ -7,6 +7,7 @@
       :key="modal.view.id"
       :id="modal.view.id"
       :title="modal.view.title"
+      :z-index="3"
     >
       <main class="block">
         <div class="mb-2">
@@ -79,6 +80,7 @@
       :key="modal.view.id"
       :id="modal.view.id"
       :title="modal.view.title"
+      :z-index="2"
     >
       <main class="flex space-x-2">
         <div>
