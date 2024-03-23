@@ -54,7 +54,7 @@ const props = defineProps({
     default: 'sm',
   },
   zIndex: {
-    type: String,
+    type: [String, Number],
     default: '2',
   },
 });
