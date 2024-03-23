@@ -307,17 +307,17 @@
         </div>
       </div>
       <div class="min-w-96">
-        <transition name="fade" mode="out-in">
-          <CoverBooks
-            :key="keyBooks"
-            :books="filterAllBooks"
-            @delete="onDeleteBook"
-            @update="updateBookModal"
-            @open="openFile"
-            @check="setCheck"
-            @add="modalBook.create.view.isShow = true"
-          />
-        </transition>
+        <div v-if="isLoading">Загрузка...</div>
+        <CoverBooks
+          v-else
+          :key="keyBooks"
+          :books="filterAllBooks"
+          @delete="onDeleteBook"
+          @update="updateBookModal"
+          @open="openFile"
+          @check="setCheck"
+          @add="modalBook.create.view.isShow = true"
+        />
       </div>
     </div>
   </div>
@@ -381,7 +381,8 @@ let allBooks = ref(null),
   selectedId = ref(null),
   search = ref(''),
   keyTreeMenu = ref(1),
-  keyBooks = ref(1);
+  keyBooks = ref(1),
+  isLoading = ref(false);
 
 watch(search, (value) => {
   if (value?.length > 0) {
@@ -688,25 +689,31 @@ const onRemoveCategory = async (id) => {
 };
 
 const getBookInCategory = async (id_category) => {
+  isLoading.value = true;
   await getBookInCategoryDB(id_category)
     .then((response) => {
       allBooks.value = response;
       filterAllBooks.value = response;
+      isLoading.value = false;
     })
     .catch((error) => {
       $toast.error('Ошибка получения списка книг');
+      isLoading.value = false;
     });
 };
 
 const getAllBooks = async () => {
+  isLoading.value = true;
   await getAllBooksDB()
     .then((response) => {
       allBooks.value = response;
       filterAllBooks.value = response;
+      isLoading.value = false;
     })
     .catch((errors) => {
       $toast.error(errors);
       console.error(errors);
+      isLoading.value = false;
     });
 };
 
