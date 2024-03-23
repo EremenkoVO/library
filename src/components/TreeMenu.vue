@@ -5,11 +5,13 @@
         :style="indent"
         :class="[
           { 'bg-gray-300 rounded-md': isSelected },
-          'hover:bg-gray-200 hover:rounded-md p-2 cursor-pointer flex justify-between',
+          'hover:bg-gray-200 hover:rounded-md p-2 cursor-pointer flex justify-between z-10',
         ]"
         @click.self="select(id)"
       >
-        <span>{{ label }}</span>
+        <span @click.self="select(id)" class="max-w-64 text-ellipsis">{{
+          label
+        }}</span>
         <div v-if="id !== -1" class="space-x-2">
           <button type="button" @click="update({ id, id_parent, label })">
             <FontAwesomeIcon :icon="faPen" />
@@ -53,7 +55,9 @@ const props = defineProps({
 });
 
 const isSelected = computed(() => props.id === props.selectedId);
-const indent = computed(() => ({ 'padding-left': `${props.depth}px` }));
+const indent = computed(() => ({
+  'padding-left': `${props.depth}px`,
+}));
 
 const select = (id) => emits('select', id);
 

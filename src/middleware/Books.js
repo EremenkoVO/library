@@ -50,7 +50,7 @@ export async function addBookDB({
       description,
       year,
       cover,
-      isCheck ? 1 : 0,
+      Number(isCheck),
       path,
       category,
       JSON.stringify(tags),
@@ -85,4 +85,14 @@ export async function updateBookDB({
  */
 export async function deleteBookByIdDB(id) {
   return await db.execute('delete from Books where id=$1', [id]);
+}
+
+/**
+ * Установить параметр, что книга прочитана
+ */
+export async function setBookByIdCheckDB({ id, isCheck }) {
+  return await db.execute('update Books set isCheck=$1 where id=$2', [
+    Number(isCheck),
+    id,
+  ]);
 }

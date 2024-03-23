@@ -152,5 +152,10 @@ dialog {
 }
 
 .btn.btn-rounded {
-  border-radius: 50%;
+  border-radius: 100%;
+  border: 1px solid #4a4e5a;
+  border: none;
+  text-align: center;
+  width: 30px;
+  padding: 3px 8px;
 }
