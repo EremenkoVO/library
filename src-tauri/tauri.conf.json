@@ -14,14 +14,33 @@
       "all": false,
       "shell": {
         "all": false,
-        "open": true
+        "open": true,
+        "sidecar": true
+      },
+      "dialog": {
+        "all": true,
+        "ask": true,
+        "confirm": true,
+        "message": true,
+        "open": true,
+        "save": true
+      },
+      "path": {
+        "all": true
+      },
+      "fs": {
+        "all": true
+      },
+      "window": {
+        "print": false,
+        "center": true
       }
     },
     "windows": [
       {
-        "title": "library",
-        "width": 1024,
-        "height": 768
+        "title": "Библиотекарь",
+        "width": 1200,
+        "height": 800
       }
     ],
     "security": {

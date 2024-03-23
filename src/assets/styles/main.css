@@ -4,6 +4,7 @@
 
 body {
   margin: 4px;
+  background-color: #f9f9f9;
 }
 
 label,
@@ -23,10 +24,6 @@ input,
 textarea,
 select {
   outline: none;
-}
-
-input::placeholder {
-  font-style: italic;
 }
 
 h1 {
@@ -75,7 +72,8 @@ dialog {
   border-bottom-right-radius: 0px;
 }
 
-.sticky > select ~ button {
+.sticky > select ~ button,
+.sticky > input ~ button {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }

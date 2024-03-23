@@ -63,7 +63,7 @@ const isData = computed(() => props.data?.length > 0);
 
 const allTags = (tags) => {
   tags = JSON.parse(tags);
-  return tags?.length > 0 ? tags : 'Нет тегов';
+  return tags?.length > 0 ? tags.toString() : 'Нет тегов';
 };
 
 const isCheckText = (isCheck) => {
@@ -72,9 +72,5 @@ const isCheckText = (isCheck) => {
 
 const deleteBook = (idBook) => {
   emits('delete-book', idBook);
-};
-
-const getObjectUrl = (cover) => {
-  return URL.createObjectURL(cover);
 };
 </script>
