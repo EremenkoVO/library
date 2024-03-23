@@ -14,7 +14,8 @@
       "all": false,
       "shell": {
         "all": false,
-        "open": true
+        "open": true,
+        "sidecar": true
       },
       "dialog": {
         "all": true,
@@ -23,13 +24,23 @@
         "message": true,
         "open": true,
         "save": true
+      },
+      "path": {
+        "all": true
+      },
+      "fs": {
+        "all": true
+      },
+      "window": {
+        "print": false,
+        "center": true
       }
     },
     "windows": [
       {
         "title": "Библиотекарь",
-        "width": 1024,
-        "height": 768
+        "width": 1200,
+        "height": 800
       }
     ],
     "security": {

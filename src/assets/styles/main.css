@@ -72,7 +72,8 @@ dialog {
   border-bottom-right-radius: 0px;
 }
 
-.sticky > select ~ button {
+.sticky > select ~ button,
+.sticky > input ~ button {
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
 }

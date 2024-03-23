@@ -171,7 +171,7 @@
                 title="Добавить новую категорию"
                 @click="modalCategory.create.view.isShow = true"
               >
-                +
+                <FontAwesomeIcon :icon="faPlus" />
               </button>
             </div>
           </div>
@@ -185,14 +185,31 @@
             <label for="check-book">Прочитано</label>
           </div>
           <div class="mb-2">
-            <label fro="path-book">Путь к книге</label>
-            <input
-              id="path-book"
-              type="text"
-              class="block"
-              placeholder="C:\Books\Book.pdf"
-              v-model="modal.value.path"
-            />
+            <label for="path-book">Путь к книге</label>
+            <div class="sticky">
+              <input
+                id="path-book"
+                type="text"
+                class="sticky-button w-full"
+                placeholder="C:\Books\Book.pdf"
+                v-model="modal.value.path"
+              />
+              <button
+                type="button"
+                class="btn btn-primary"
+                title="Указать путь"
+                @click="
+                  async () => {
+                    modal.value.path = await open({
+                      multiple: false,
+                      title: 'Указать путь к файлу',
+                    });
+                  }
+                "
+              >
+                <FontAwesomeIcon :icon="faFolderOpen" />
+              </button>
+            </div>
           </div>
           <div class="mb-2">
             <label>Теги</label>
@@ -233,6 +250,9 @@
       </button>
       <button type="button" class="btn btn-primary" @click="getAllBooks">
         Получить список всех книг
+      </button>
+      <button type="button" class="btn btn-primary" @click="greet">
+        Greet
       </button>
       <button type="button" class="btn btn-danger" @click="clearAll">
         Очистить таблицы и переопределить
@@ -278,6 +298,7 @@
           :books="filterAllBooks"
           @delete="onDeleteBook"
           @update="updateBookModal"
+          @open="openFile"
           @add="modalBook.create.view.isShow = true"
         />
       </div>
@@ -286,9 +307,14 @@
 </template>
 
 <script setup>
-import { faPlus, faImage } from '@fortawesome/free-solid-svg-icons';
+import {
+  faFolderOpen,
+  faImage,
+  faPlus,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { ask } from '@tauri-apps/api/dialog';
+import { ask, open } from '@tauri-apps/api/dialog';
+import { invoke } from '@tauri-apps/api/tauri';
 import * as $array from 'alga-js/array';
 import {
   computed,
@@ -304,8 +330,8 @@ import {
   addBookDB,
   deleteBookByIdDB,
   getAllBooksDB,
-  updateBookDB,
   getBookInCategoryDB,
+  updateBookDB,
 } from './middleware/Books';
 import {
   addCategoryDB,
@@ -670,6 +696,31 @@ const clearAll = async () => {
     await getAllCategories();
     await getAllBooks();
     $toast.success('Все данные были очищены!');
+  }
+};
+
+const openFile = async ({ path }) => {
+  if (path) {
+    try {
+      await invoke('open_file', {
+        filePath: path,
+      });
+      console.log('File opened successfully');
+    } catch (error) {
+      $toast.error('Ошибка открытия файла:', error);
+    }
+  }
+};
+
+const greet = async () => {
+  let name = prompt('Как вас зовут?');
+
+  try {
+    await invoke('greet', { name }).then((response) => {
+      console.log(response);
+    });
+  } catch (error) {
+    console.error('Error:', error);
   }
 };
 

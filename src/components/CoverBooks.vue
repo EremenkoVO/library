@@ -5,6 +5,7 @@
         <div
           :style="`background-image: url(${book.cover}); width: 200px; height: 300px; background-size: contain;`"
           class="rounded-md cursor-pointer"
+          @click.self="openBook(book.path)"
         >
           <div class="px-2 py-1 space-x-2 text-right">
             <button type="button" @click="updateBook(book)" title="Изменить">
@@ -52,9 +53,9 @@
 <script setup>
 import { faPen, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { computed, defineEmits, defineProps, ref } from 'vue';
+import { computed, defineEmits, defineProps } from 'vue';
 
-const emits = defineEmits(['add', 'delete', 'update']);
+const emits = defineEmits(['add', 'delete', 'update', 'open']);
 
 const props = defineProps({
   books: {
@@ -63,11 +64,10 @@ const props = defineProps({
   },
 });
 
-const isHover = ref(false);
-
 const isBooks = computed(() => props.books?.length > 0);
 
 const deleteBook = (id) => emits('delete', id);
 const updateBook = (book) => emits('update', book);
+const openBook = (path) => emits('open', { path });
 const add = () => emits('add');
 </script>
