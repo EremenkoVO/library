@@ -7,7 +7,7 @@
       :key="modal.view.id"
       :id="modal.view.id"
       :title="modal.view.title"
-      :z-index="3"
+      :z-index="999"
     >
       <main class="block">
         <div class="mb-2">
@@ -85,7 +85,7 @@
       :key="modal.view.id"
       :id="modal.view.id"
       :title="modal.view.title"
-      :z-index="2"
+      :z-index="998"
     >
       <main class="flex space-x-2">
         <div>
@@ -93,7 +93,7 @@
           <div
             class="h-full w-full border rounded-md cursor-pointer text-center flex flex-col justify-center hover:bg-slate-100"
             title="Изменить обложку"
-            :style="`background-image: url(${modal.value.cover}); width: 350px; height: 550px; background-size: contain;`"
+            :style="`background-image: url(${modal.value.cover}); width: 350px; height: 495px; background-size: contain;`"
             @click="$refs.file[0].click()"
           >
             <input
@@ -268,9 +268,6 @@
       <button type="button" class="btn btn-primary" @click="getAllBooks">
         Получить список всех книг
       </button>
-      <button type="button" class="btn btn-primary" @click="greet">
-        Greet
-      </button>
       <button type="button" class="btn btn-danger" @click="clearAll">
         Очистить таблицы и переопределить
       </button>
@@ -286,7 +283,7 @@
       />
     </div>
     <div class="mt-4 w-full flex">
-      <div class="w-72 m-2 p-2 border-1 border-black">
+      <div class="min-w-72 max-w-72 m-2 p-2 border-1 border-black">
         <TreeMenu
           label="Все"
           :key="keyTreeMenu"
@@ -309,13 +306,14 @@
           </button>
         </div>
       </div>
-      <div>
+      <div class="min-w-96">
         <CoverBooks
           :key="keyBooks"
           :books="filterAllBooks"
           @delete="onDeleteBook"
           @update="updateBookModal"
           @open="openFile"
+          @check="setCheck"
           @add="modalBook.create.view.isShow = true"
         />
       </div>
@@ -350,6 +348,7 @@ import {
   getAllBooksDB,
   getBookInCategoryDB,
   updateBookDB,
+  setBookByIdCheckDB,
 } from './middleware/Books';
 import {
   addCategoryDB,
@@ -516,7 +515,7 @@ const modalBook = reactive({
             file.value = '';
           })
           .then(async () => {
-            await getAllBooks();
+            await getBookInCategory(selectedId.value);
           })
           .catch((errors) => {
             console.error(errors);
@@ -693,8 +692,8 @@ const getBookInCategory = async (id_category) => {
     });
 };
 
-const getAllBooks = async (id) => {
-  await getAllBooksDB(id)
+const getAllBooks = async () => {
+  await getAllBooksDB()
     .then((response) => {
       allBooks.value = response;
       filterAllBooks.value = response;
@@ -745,19 +744,25 @@ const openFile = async ({ path }) => {
   }
 };
 
-const greet = async () => {
-  let name = prompt('Как вас зовут?');
+const setCheck = async ({ id, isCheck }) => {
+  isCheck = isCheck == 0 ? 1 : 0;
+  setBookByIdCheckDB({ id, isCheck })
+    .then((response) => {
+      $toast.success('Информация о книге была обновлена');
 
-  try {
-    await invoke('greet', { name }).then((response) => {
-      console.log(response);
+      if (selectedId.value == -1) {
+        getAllBooks();
+      } else {
+        getBookInCategory(selectedId.value);
+      }
+    })
+    .catch((error) => {
+      $toast.error(`Ошибка: ${error}`);
     });
-  } catch (error) {
-    console.error('Error:', error);
-  }
 };
 
 onMounted(async () => {
+  selectedId.value = -1;
   await getAllCategories();
   await getAllBooks();
 });
