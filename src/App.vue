@@ -307,15 +307,17 @@
         </div>
       </div>
       <div class="min-w-96">
-        <CoverBooks
-          :key="keyBooks"
-          :books="filterAllBooks"
-          @delete="onDeleteBook"
-          @update="updateBookModal"
-          @open="openFile"
-          @check="setCheck"
-          @add="modalBook.create.view.isShow = true"
-        />
+        <transition name="fade" mode="out-in">
+          <CoverBooks
+            :key="keyBooks"
+            :books="filterAllBooks"
+            @delete="onDeleteBook"
+            @update="updateBookModal"
+            @open="openFile"
+            @check="setCheck"
+            @add="modalBook.create.view.isShow = true"
+          />
+        </transition>
       </div>
     </div>
   </div>
@@ -347,8 +349,8 @@ import {
   deleteBookByIdDB,
   getAllBooksDB,
   getBookInCategoryDB,
-  updateBookDB,
   setBookByIdCheckDB,
+  updateBookDB,
 } from './middleware/Books';
 import {
   addCategoryDB,
@@ -515,7 +517,11 @@ const modalBook = reactive({
             file.value = '';
           })
           .then(async () => {
-            await getBookInCategory(selectedId.value);
+            if (selectedId.value == -1) {
+              getAllBooks();
+            } else {
+              getBookInCategory(selectedId.value);
+            }
           })
           .catch((errors) => {
             console.error(errors);
