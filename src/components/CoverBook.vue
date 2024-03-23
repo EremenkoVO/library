@@ -8,12 +8,12 @@
     @mouseover="displayXMark(true)"
     @mouseleave="displayXMark(false)"
   >
-    <div v-if="isHover" class="px-2 py-1 space-x-2 space-y-1">
+    <div v-show="isHover" class="px-2 py-1 space-x-2 space-y-1">
       <button
         type="button"
         class="btn btn-rounded bg-white"
         @click="setCheck(book)"
-        title="Изменить"
+        title="Прочитано?"
       >
         <FontAwesomeIcon :icon="isIconCheck(book.isCheck)" />
       </button>
@@ -35,8 +35,8 @@
       </button>
     </div>
     <div
-      v-if="!isHover && Boolean(book.isCheck)"
-      class="px-2 py-1 space-x-2 space-y-1"
+      v-show="!isHover && Boolean(book.isCheck)"
+      class="px-2 py-1 space-x-2 space-y-1 m-0"
     >
       <button type="button" class="btn btn-rounded bg-white">
         <FontAwesomeIcon :icon="isIconCheck(book.isCheck)" />

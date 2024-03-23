@@ -748,8 +748,13 @@ const setCheck = async ({ id, isCheck }) => {
   isCheck = isCheck == 0 ? 1 : 0;
   setBookByIdCheckDB({ id, isCheck })
     .then((response) => {
-      getBookInCategory(selectedId.value);
       $toast.success('Информация о книге была обновлена');
+
+      if (selectedId.value == -1) {
+        getAllBooks();
+      } else {
+        getBookInCategory(selectedId.value);
+      }
     })
     .catch((error) => {
       $toast.error(`Ошибка: ${error}`);
