@@ -53,6 +53,10 @@ const props = defineProps({
     type: String,
     default: 'sm',
   },
+  zIndex: {
+    type: String,
+    default: '2',
+  },
 });
 
 const setSize = computed(() => {

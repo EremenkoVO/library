@@ -11,7 +11,12 @@
     >
       <main class="block">
         <div class="mb-2">
-          <label for="name-category">Наименование категории</label>
+          <label for="name-category"
+            >Наименование категории
+            <sup class="text-red-500">
+              <FontAwesomeIcon :icon="faAsterisk"></FontAwesomeIcon>
+            </sup>
+          </label>
           <input
             id="name-category"
             type="name"
@@ -110,7 +115,12 @@
         </div>
         <div class="block">
           <div class="mb-2">
-            <label for="name-book">Автор(ы) книги</label>
+            <label for="name-book"
+              >Автор(ы) книги
+              <sup class="text-red-500">
+                <FontAwesomeIcon :icon="faAsterisk"></FontAwesomeIcon>
+              </sup>
+            </label>
             <input
               id="name-book"
               type="text"
@@ -120,7 +130,12 @@
             />
           </div>
           <div class="mb-2">
-            <label for="name-book">Наименование книги</label>
+            <label for="name-book"
+              >Наименование книги
+              <sup class="text-red-500">
+                <FontAwesomeIcon :icon="faAsterisk"></FontAwesomeIcon>
+              </sup>
+            </label>
             <input
               id="name-book"
               type="text"
@@ -310,6 +325,7 @@
 
 <script setup>
 import {
+  faAsterisk,
   faFolderOpen,
   faImage,
   faPlus,
@@ -399,6 +415,11 @@ const modalCategory = reactive({
       title_btn_primary: 'Добавить',
       isShow: false,
       func: async () => {
+        if (!modalCategory.create.value.name) {
+          $toast.error('Заполните все обязательные поля');
+          return;
+        }
+
         await addCategoryDB(modalCategory.create.value)
           .then(async () => {
             modalCategory.create.view.isShow = false;
@@ -431,6 +452,11 @@ const modalCategory = reactive({
       title_btn_primary: 'Изменить',
       isShow: false,
       func: async () => {
+        if (!modalCategory.edit.value.name) {
+          $toast.error('Заполните все обязательные поля');
+          return;
+        }
+
         await updateCategoryDB(modalCategory.edit.value)
           .then(() => {
             modalCategory.edit.view.isShow = false;
@@ -466,6 +492,11 @@ const modalBook = reactive({
       title_btn_primary: 'Добавить',
       isShow: false,
       func: async () => {
+        if (!modalBook.create.value.author || !modalBook.create.value.name) {
+          $toast.error('Заполните все обязательные поля');
+          return;
+        }
+
         await addBookDB(modalBook.create.value)
           .then(async () => {
             modalBook.create.view.isShow = false;
