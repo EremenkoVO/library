@@ -7,7 +7,7 @@
           { 'bg-gray-300 rounded-md': isSelected },
           'hover:bg-gray-200 hover:rounded-md p-2 cursor-pointer flex justify-between',
         ]"
-        @click="select(id)"
+        @click.self="select(id)"
       >
         <span>{{ label }}</span>
         <div v-if="id !== -1" class="space-x-2">
