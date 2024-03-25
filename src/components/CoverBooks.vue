@@ -1,16 +1,16 @@
 <template>
-  <div>
-    <div v-if="isBooks" class="w-full flex-wrap flex">
-      <div style="width: 200px; height: 300px" class="m-4">
-        <button
-          type="button"
-          class="w-full h-full text-center btn btn-outline"
-          title="Добавить книгу"
-          @click="add"
-        >
-          <FontAwesomeIcon :icon="faPlus" />
-        </button>
-      </div>
+  <div class="w-full flex-wrap flex">
+    <div style="width: 200px; height: 300px" class="m-4">
+      <button
+        type="button"
+        class="w-full h-full text-center btn btn-outline"
+        title="Добавить книгу"
+        @click="add"
+      >
+        <FontAwesomeIcon :icon="faPlus" />
+      </button>
+    </div>
+    <template v-if="isBooks">
       <div v-for="book in books" :key="book.id" class="m-2 p-2">
         <CoverBook
           :book="book"
@@ -20,7 +20,7 @@
           @check="setCheck"
         ></CoverBook>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
