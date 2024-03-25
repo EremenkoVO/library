@@ -105,12 +105,25 @@
               accept="image/png, image/gif, image/jpeg"
               @change="
                 async (event) => {
-                  modal.value.cover = await toBase64(event.target.files[0]);
+                  let file = event.target.files[0];
+                  let size = event.target.files[0].size;
+                  const maxSizeInBytes = 1 * 1024 * 1024;
+
+                  if (size > maxSizeInBytes) {
+                    $toast.error('Файл слишком большой');
+                    return;
+                  }
+                  modal.value.cover = await toBase64(file);
                   event.target.files = null;
                 }
               "
             />
-            <FontAwesomeIcon v-if="!modal.value.cover" :icon="faImage" />
+            <div v-if="!modal.value.cover">
+              <FontAwesomeIcon :icon="faImage" />
+              <div class="text-center">
+                Рекомендуемый размер 350x495 (до 1 МБ)
+              </div>
+            </div>
           </div>
         </div>
         <div class="block">
@@ -403,12 +416,28 @@ watch(selectedId, (value) => {
   getBookInCategory(value);
 });
 
+/**
+ * Флаг режим разработчика
+ * @return {boolean}
+ */
 const isDevelopment = computed(() => process.env.NODE_ENV === 'development');
 
+/**
+ * Флаг наличие категорий
+ * @return {boolean}
+ */
 const isCategories = computed(() => allCategories.value?.length > 0);
 
+/**
+ * Отсортированы категории
+ * @returns {array}
+ */
 const $roots = computed(() => roots.value);
 
+/**
+ * Модальные окна для создания/редактирования категорий
+ * @returns {object}
+ */
 const modalCategory = reactive({
   create: {
     view: {
@@ -486,6 +515,10 @@ const modalCategory = reactive({
   },
 });
 
+/**
+ * Модальные окна для создания/редактирования информации о книги
+ * @returns {object}
+ */
 const modalBook = reactive({
   create: {
     view: {
@@ -592,6 +625,10 @@ const modalBook = reactive({
   },
 });
 
+/**
+ * Сортировка категорий
+ * @param {array} filters
+ */
 const sortFilter = async (filters) => {
   roots.value = [];
   let node, i;
@@ -622,6 +659,10 @@ const sortFilter = async (filters) => {
   }
 };
 
+/**
+ * Триггер для обновления категорий
+ * @param {*} data
+ */
 const updateCategoryModal = async (data) => {
   modalCategory.edit.view.isShow = true;
   modalCategory.edit.value.id = data.id;
@@ -629,6 +670,10 @@ const updateCategoryModal = async (data) => {
   modalCategory.edit.value.name = data.label;
 };
 
+/**
+ * Триггер для обновления информации о книге
+ * @param {*} data
+ */
 const updateBookModal = async (data) => {
   modalBook.edit.view.isShow = true;
   modalBook.edit.value.id = data.id;
@@ -644,10 +689,18 @@ const updateBookModal = async (data) => {
   modalBook.edit.value.created = data.created;
 };
 
+/**
+ * Обновление выбранного пункта категорий
+ * @param {number} id
+ */
 const select = async (id) => {
   selectedId.value = id;
 };
 
+/**
+ * Обновление информации о книге
+ * @param {*} id
+ */
 const onDeleteBook = async (id) => {
   const yes = await ask('Вы уверены, что хотите удалить книгу?', {
     title: 'Библиотекарь',
@@ -667,6 +720,10 @@ const onDeleteBook = async (id) => {
       });
 };
 
+/**
+ * Обновление категории
+ * @param {*} id
+ */
 const onRemoveCategory = async (id) => {
   console.log(id);
   const yes = await ask('Вы уверены, что хотите удалить категорию?', {
@@ -688,6 +745,10 @@ const onRemoveCategory = async (id) => {
       });
 };
 
+/**
+ * Получение книг по категории
+ * @param {*} id_category
+ */
 const getBookInCategory = async (id_category) => {
   isLoading.value = true;
   await getBookInCategoryDB(id_category)
@@ -702,6 +763,9 @@ const getBookInCategory = async (id_category) => {
     });
 };
 
+/**
+ * Получение всех книг
+ */
 const getAllBooks = async () => {
   isLoading.value = true;
   await getAllBooksDB()
@@ -717,6 +781,9 @@ const getAllBooks = async () => {
     });
 };
 
+/**
+ * Получение всех категорий
+ */
 const getAllCategories = async () => {
   await getAllCategoryDB()
     .then(async (response) => {
@@ -729,6 +796,9 @@ const getAllCategories = async () => {
     });
 };
 
+/**
+ * Очистить всю бд (для разработчика)
+ */
 const clearAll = async () => {
   const yes = await ask(
     'Вы уверены, что хотите все очистить? Процесс необратим',
@@ -744,8 +814,13 @@ const clearAll = async () => {
   }
 };
 
+/**
+ * Открыть файл
+ * @param {*} param0
+ */
 const openFile = async ({ path }) => {
   if (path) {
+    $toast.info('Открытие...');
     try {
       await invoke('open_file', {
         filePath: path,
@@ -757,17 +832,31 @@ const openFile = async ({ path }) => {
   }
 };
 
+/**
+ * Обновление массива книг где есть флаг прочтения книги
+ * @param {*} id
+ * @param {*} isCheck
+ */
+const updateArrBook = async (id, isCheck) => {
+  allBooks.value?.forEach((book) => {
+    if (book.id === id) {
+      book.isCheck = isCheck;
+    }
+  });
+};
+
+/**
+ * Обновления флага прочтения книги
+ * @param {*} param0
+ */
 const setCheck = async ({ id, isCheck }) => {
   isCheck = isCheck == 0 ? 1 : 0;
   setBookByIdCheckDB({ id, isCheck })
-    .then((response) => {
+    .then(() => {
       $toast.success('Информация о книге была обновлена');
-
-      if (selectedId.value == -1) {
-        getAllBooks();
-      } else {
-        getBookInCategory(selectedId.value);
-      }
+    })
+    .then(() => {
+      updateArrBook(id, isCheck);
     })
     .catch((error) => {
       $toast.error(`Ошибка: ${error}`);
