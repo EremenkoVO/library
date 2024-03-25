@@ -159,3 +159,12 @@ dialog {
   width: 30px;
   padding: 3px 8px;
 }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

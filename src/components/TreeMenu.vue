@@ -9,7 +9,7 @@
         ]"
         @click.self="select(id)"
       >
-        <span @click.self="select(id)" class="max-w-64 text-ellipsis">{{
+        <span @click.self="select(id)" class="max-w-48 text-ellipsis">{{
           label
         }}</span>
         <div v-if="id !== -1" class="space-x-2">
